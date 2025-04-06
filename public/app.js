@@ -8,7 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeVideoBtn = document.getElementById('close-video');
   const cadenceValue = document.getElementById('cadence-value');
   const resistanceValue = document.getElementById('resistance-value');
+  const powerValue = document.getElementById('power-value');
+  const speedValue = document.getElementById('speed-value');
   const breadcrumb = document.getElementById('breadcrumb');
+
+  let lastCadence = 0;
+  let lastResistance = 0;
   
   // Current directory path (relative to videos folder)
   let currentPath = '';
@@ -252,11 +257,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateMetrics(data) {
     if ('cadence' in data) {
       cadenceValue.textContent = Math.round(data.cadence);
+      lastCadence = data.cadence;
     }
     
     if ('resistance' in data) {
       resistanceValue.textContent = Math.round(data.resistance);
+      lastResistance = data.resistance;
     }
+
+    // REVISIT
+    // Power (in watts) = (Resistance % × Cadence²) ÷ a constant (30 for peloton).
+    powerValue.textContent = (Math.round((lastResistance * Math.pow(lastCadence, 2)) / 30));
+
+    // convert meters per second to km/h
+    speedValue.textContent = (Math.round(lastResistance * 30 * 3.6));
   }
   
   // Setup event listeners

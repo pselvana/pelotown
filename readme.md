@@ -101,6 +101,22 @@ To send metrics to the application, connect to the WebSocket server at `ws://loc
 }
 ```
 
+Can also be tested in console with:
+```
+const ws = new WebSocket('ws://localhost:3000');
+ws.onopen = () => {
+  // Send sample metrics
+  ws.send(JSON.stringify({cadence: 85, resistance: 45}));
+  
+  // Send updated metrics every few seconds
+  setInterval(() => {
+    const cadence = 70 + Math.floor(Math.random() * 30);
+    const resistance = 30 + Math.floor(Math.random() * 40);
+    ws.send(JSON.stringify({cadence, resistance}));
+  }, 3000);
+};
+```
+
 You can send either or both values as needed. The display will update in real-time for all connected clients.
 
 ## Directory Structure
