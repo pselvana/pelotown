@@ -1,0 +1,69 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PelotOWN - Your Personal Cycling Videos</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <i class="fas fa-bicycle"></i>
+      <h1>PelotOWN</h1>
+    </div>
+    <div class="tagline">Your Personal Cycling Experience</div>
+  </header>
+
+  <main>
+    <!-- Video Gallery View -->
+    <section id="gallery-view">
+      <div class="gallery-header">
+        <h2>Your Workout Videos</h2>
+        <div class="breadcrumb-container">
+          <nav aria-label="breadcrumb">
+            <ol id="breadcrumb">
+              <li><a href="#" data-path="">Home</a></li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+      
+      <div id="content-grid"></div>
+    </section>
+
+    <!-- Video Player View -->
+    <section id="player-view" class="hidden">
+      <div class="player-container">
+        <video id="video-player" controls></video>
+        
+        <div class="metrics-overlay">
+          <div class="metric cadence">
+            <div class="metric-label">CADENCE</div>
+            <div id="cadence-value">0</div>
+            <div class="metric-unit">RPM</div>
+          </div>
+          
+          <div class="metric resistance">
+            <div class="metric-label">RESISTANCE</div>
+            <div id="resistance-value">0</div>
+            <div class="metric-unit">%</div>
+          </div>
+        </div>
+        
+        <button id="close-video" class="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>PelotOWN &copy; 2025 - Your Personal Cycling Platform</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
