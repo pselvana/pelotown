@@ -81,11 +81,26 @@ function scanDirectory(dirPath, relativePath = '') {
         path: path.join(relativePath, item)
       });
     } else if (stats.isFile() && path.extname(item).toLowerCase() === '.mp4') {
+      // Extract name parameters from item name: Peloton_20240429_10_Kendall Toole_Dance_10 min Cool Down Ride.mp4 => provider=Peloton, date=20240429, duration=10, instructor=Kendall Toole, type=Dance, title=10 min Cool Down Ride
+      const nameParts = item.split('_');
+      const provider = nameParts[0];
+      const date = nameParts[1];
+      const duration = nameParts[2];
+      const instructor = nameParts[3];
+      const type = nameParts[4];
+      const title = nameParts.slice(5).join('_').replace('.mp4', '');
+
       result.videos.push({
         name: item,
         path: path.join(relativePath, item),
         size: stats.size,
-        modified: stats.mtime
+        modified: stats.mtime,
+        provider: provider,
+        date: date,
+        duration: duration,
+        instructor: instructor,
+        type: type,
+        title: title
       });
     }
   }

@@ -2,6 +2,8 @@
 
 A bicycle-themed video player application that allows you to browse and play your workout videos with real-time metrics overlay.
 
+Requires (FUTURE) integration with: https://github.com/pselvana/peloton-overlay
+
 ## Features
 
 - Browse MP4 videos from your videos folder with a thumbnail gallery view
