@@ -257,6 +257,17 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Websocket connection
   let ws;
+
+  let receivedData;
+
+  // Hashmap of current filters
+  let currentFilters = {
+    instructor: '',
+    music: '',
+    exercise: '',
+    duration: '',
+    theme: ''
+  };
   
   // Initialize the application
   function init() {
@@ -266,13 +277,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Format date for display
-  function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
+  function formatDate(dateString) {
+    const year = dateString.substring(0, 4);
+    const month = dateString.substring(4, 6) - 1; // Months are zero-indexed in JavaScript
+    const day = dateString.substring(6, 8);
+    const date = new Date(year, month, day);
+    
+    // Format the date to "Oct 9, 2021"
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    const formattedDate = date.toLocaleDateString('en-US', options);
+    return formattedDate;
   }
   
   // Format file size
@@ -286,6 +300,69 @@ document.addEventListener('DOMContentLoaded', () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
   
+  function filterVideosBySelections(e)
+  {
+    const selectedValue = e.target.value;
+    if (e.target.id == "instructor-filter") {
+      currentFilters.instructor = selectedValue;
+    }
+    if (e.target.id == "music-filter") {
+      currentFilters.music = selectedValue;
+    }
+    if (e.target.id == "exercise-filter") {
+      currentFilters.exercise = selectedValue;
+    }
+    if (e.target.id == "duration-filter") {
+      currentFilters.duration = selectedValue;
+    }
+    if (e.target.id == "theme-filter") {
+      currentFilters.theme = selectedValue;
+    }
+
+    console.log(currentFilters);
+
+
+    let filteredVideos = receivedData.videos;
+
+    if (currentFilters.exercise !== '') {
+      filteredVideos = filteredVideos.filter(video => video.exercise === currentFilters.exercise);
+    }
+
+    if (currentFilters.duration !== '') {
+      filteredVideos = filteredVideos.filter(video => video.duration === currentFilters.duration);
+    }
+
+    if (currentFilters.theme !== '') {
+      filteredVideos = filteredVideos.filter(video => video.theme === currentFilters.theme);
+    }
+
+    if (currentFilters.instructor !== '') {
+      filteredVideos = filteredVideos.filter(video => video.instructor === currentFilters.instructor);
+    }
+
+    if (currentFilters.music !== '') {
+      filteredVideos = filteredVideos.filter(video => video.music === currentFilters.music);
+    }
+
+    // Clear content grid and re-create video thumbnails
+    contentGrid.innerHTML = '';
+    filteredVideos.forEach(video => {
+      createVideoThumbnail(video);
+    });
+  }
+
+  function createDropdownFilter(options, id, label, onChangeHandler) {
+    const dropdownFilter = document.createElement('select');
+    dropdownFilter.id = id;
+    dropdownFilter.innerHTML = `
+      <option value="">All ${label}</option>
+      ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+    `;
+    dropdownFilter.style.marginBottom = '10px';
+    dropdownFilter.addEventListener('change', onChangeHandler);
+    contentGrid.parentElement.insertBefore(dropdownFilter, contentGrid);
+  }
+
   // Load content (folders and videos) from the server
   function loadContent(path) {
     showLoading();
@@ -295,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`/api/browse/${path}`)
       .then(response => response.json())
       .then(data => {
+        receivedData = data;
         contentGrid.innerHTML = '';
         
         // No content case
@@ -302,7 +380,21 @@ document.addEventListener('DOMContentLoaded', () => {
           showEmptyState();
           return;
         }
+        const exercises = [...new Set(data.videos.map(video => video.exercise))];
+        createDropdownFilter(exercises, 'exercise-filter', 'Exercises', filterVideosBySelections);
         
+        const durations = [...new Set(data.videos.map(video => video.duration))];
+        createDropdownFilter(durations, 'duration-filter', 'Durations', filterVideosBySelections);
+
+        const themes = [...new Set(data.videos.map(video => video.theme))];
+        createDropdownFilter(themes, 'theme-filter', 'Themes', filterVideosBySelections);
+
+        const instructors = [...new Set(data.videos.map(video => video.instructor))];
+        createDropdownFilter(instructors, 'instructor-filter', 'Instructors', filterVideosBySelections);
+        
+        const music = [...new Set(data.videos.map(video => video.music))];
+        createDropdownFilter(music, 'music-filter', 'Music', filterVideosBySelections);
+
         // Create folder items
         data.folders.forEach(folder => {
           createFolderItem(folder);
@@ -460,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="video-meta">
         <span class="video-instructor">${video.instructor}</span> •
         <span class="video-duration">${video.duration}m</span> •
-        ${formatDate(video.modified)} •
+        ${formatDate(video.date)} •
         ${video.music}
       </div>
       `;

@@ -12,6 +12,35 @@ body {
   line-height: 1.6;
 }
 
+select {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #333;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  width: 200px;
+}
+
+/* Styling the options */
+option {
+  font-size: 14px;
+  color: #555;
+  background-color: #fff;
+  padding: 4px;
+}
+
+/* Hover effect for options */
+option:hover {
+  background-color: #f0f0f0;
+}
+
+/* Disabled option styling */
+option:disabled {
+  color: #999;
+  background-color: #eee;
+}
 header {
   background-color: #e63946;
   color: white;
