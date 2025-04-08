@@ -75,6 +75,9 @@ function scanDirectory(dirPath, relativePath = '') {
     const itemPath = path.join(dirPath, item);
     const stats = fs.statSync(itemPath);
     
+    // ignore if hidden
+    if (item.startsWith('.')) continue;
+
     if (stats.isDirectory()) {
       result.folders.push({
         name: item,
