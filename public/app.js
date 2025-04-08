@@ -359,6 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
     `;
     dropdownFilter.style.marginBottom = '10px';
+    dropdownFilter.style.marginRight = '10px';
     dropdownFilter.addEventListener('change', onChangeHandler);
     contentGrid.parentElement.insertBefore(dropdownFilter, contentGrid);
   }
@@ -524,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
       thumbnail.style.backgroundRepeat = 'no-repeat';
 
       // add 80px tall thumbnail box
-      thumbnail.style.height = '240px';
+      thumbnail.style.height = '260px';
       thumbnail.innerHTML = `
         `;
     }
@@ -545,13 +546,14 @@ document.addEventListener('DOMContentLoaded', () => {
     infoPanel.style.bottom = '0';
     infoPanel.style.left = '0';
     infoPanel.style.width = '100%';
-    infoPanel.style.padding = '10px';
+    infoPanel.style.padding = '3px';
     infoPanel.style.fontSize = '13px';
     infoPanel.innerHTML = `
       <div class="video-title">${video.title}</div>
       <div class="video-meta">
         <span class="video-instructor">${video.instructor}</span> •
         <span class="video-duration">${video.duration}m</span> •
+        <span class="video-theme">${video.theme}</span> <br/>
         ${formatDate(video.date)} •
         ${video.music}
       </div>
