@@ -88,7 +88,8 @@ function scanDirectory(dirPath, relativePath = '') {
       const duration = nameParts[2];
       const instructor = nameParts[3];
       const type = nameParts[4];
-      const title = nameParts.slice(5).join('_').replace('.mp4', '');
+      const music = nameParts[5];
+      const title = nameParts.slice(6).join('_').replace('.mp4', '');
 
       result.videos.push({
         name: item,
@@ -100,6 +101,7 @@ function scanDirectory(dirPath, relativePath = '') {
         duration: duration,
         instructor: instructor,
         type: type,
+        music: music,
         title: title
       });
     }

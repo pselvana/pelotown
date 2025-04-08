@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/001584f720a4442a89cce3a9aa4a7c5c"
     },
     {
-      "name": "Camila Ram\u00f3n",
+      "name": "Camila Ramon",
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/ab238fb5e5f248049798d667c08e2966"
     },
     {
@@ -453,12 +453,15 @@ document.addEventListener('DOMContentLoaded', () => {
     infoPanel.style.bottom = '0';
     infoPanel.style.left = '0';
     infoPanel.style.width = '100%';
+    infoPanel.style.padding = '10px';
+    infoPanel.style.fontSize = '13px';
     infoPanel.innerHTML = `
       <div class="video-title">${video.title}</div>
       <div class="video-meta">
         <span class="video-instructor">${video.instructor}</span> •
         <span class="video-duration">${video.duration}m</span> •
-        ${formatDate(video.modified)}
+        ${formatDate(video.modified)} •
+        ${video.music}
       </div>
       `;
     thumbnail.appendChild(infoPanel);
