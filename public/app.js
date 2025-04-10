@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/f401fd993aae42debd516f1a56bbde27"
     },
     {
-      "name": "Christine D'Ercole",
+      "name": "Christine DErcole",
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/b34c4087a2fb41a48a17af8e76c37e89"
     },
     {
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/07cd6ac5d85e4ad5972c1a084c34a69e"
     },
     {
-      "name": "Erik J\u00e4ger",
+      "name": "Erik Jager",
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/9f3390f75ddd4c68a68361de6a80c2b9"
     },
     {
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/a91ec58926b74942b435a55b41691ba9"
     },
     {
-      "name": "Mariana Fern\u00e1ndez",
+      "name": "Mariana Fernandez",
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/414b737622034473b49506fda23eed14"
     },
     {
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/e8bd3100a6ac445d8a5a20b6302d8f5b"
     },
     {
-      "name": "Robin Arz\u00f3n",
+      "name": "Robin Arzon",
       "image_url": "https://s3.amazonaws.com/workout-metric-images-prod/4f14e005ca914ab68b313c3f752b3574"
     },
     {
