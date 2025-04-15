@@ -353,6 +353,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function createDropdownFilter(options, id, label, onChangeHandler) {
     const dropdownFilter = document.createElement('select');
+    
+    // Sort options alphabetically and sort numbers by value
+    if (label === "Durations") {
+      options.sort((a, b) => {
+        const numA = parseInt(a);
+        const numB = parseInt(b);
+        return numA - numB;
+      }
+      );
+    } 
+    else {
+      options.sort((a, b) => a.localeCompare(b));
+    }
+
     dropdownFilter.id = id;
     dropdownFilter.innerHTML = `
       <option value="">All ${label}</option>
