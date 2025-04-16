@@ -380,6 +380,25 @@ footer {
   100% { transform: rotate(360deg); }
 }
 
+.styled-button {
+  background-color: #e63946; /* Nice blue */
+  color: white; /* White text */
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.styled-button:hover {
+  background-color: #c62b38; /* Darker blue on hover */
+}
+
+a {
+  text-decoration: none; /* Remove underline */
+}
+
 @media (max-width: 768px) {
   main {
     padding: 1rem;
