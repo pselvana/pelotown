@@ -166,8 +166,59 @@ function videoPlayed(videoName) {
   });
 }
 
+// API endpoint to get the video file names from the txt files in the 'stats' folder order by frequency
+app.get('/api/getPopularVideos', (req, res) => {
+  const result = {
+    folders: [],
+    videos: []
+  };
 
-// API endpoint to get the vide file names deduplicated from latest 25 timestamp files sorted by timestamp
+  const statsDir = path.join(__dirname, 'stats');
+  
+  // Read the stats directory
+  fs.readdir(statsDir, (err, files) => {
+    if (err) {
+      console.error('Error reading stats directory:', err);
+      return res.status(500).json({ error: 'Failed to read stats directory' });
+    }
+    
+    // Filter for .txt files and sort by timestamp
+    const txtFiles = files.filter(file => file.endsWith('.txt')).sort((a, b) => {
+      // Extract timestamps from filenames
+      const timestampA = a.split('.')[0];
+      const timestampB = b.split('.')[0];
+      return timestampA < timestampB ? 1 : -1;
+    });
+    
+    // variable that is hashmap of video names and their frequency
+    const videoFrequency = {};
+    
+    txtFiles.forEach(file => {
+      const filePath = path.join(statsDir, file);
+      const content = fs.readFileSync(filePath, 'utf8');
+      //increment the frequency of content in the hashmap
+      if (videoFrequency[content.trim()]) {
+        videoFrequency[content.trim()]++;
+      } else {
+        videoFrequency[content.trim()] = 1;
+      }
+    });
+
+    // create a new object from videoFrequency using the key and value sort by value
+    const sortedVideos = Object.entries(videoFrequency).sort((a, b) => b[1] - a[1]);
+    // add the video names to the result
+    sortedVideos.forEach(video => {
+      result.videos.push(parseFileName(video[0]));
+    });
+    
+    // Return only 25 elements
+    result.videos = Array.from(result.videos).slice(0, 25);
+    res.json(result);
+  });
+});
+
+
+// API endpoint to get the video file names deduplicated from latest 25 timestamp files sorted by timestamp
 app.get('/api/getLatestVideos', (req, res) => {
   const result = {
     folders: [],

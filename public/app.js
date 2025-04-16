@@ -388,7 +388,12 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPath = path;
     updateBreadcrumb(path);
 
-    contentURL = viewParam === "all" ? `/api/browse/${path}` : '/api/getLatestVideos';
+    contentURL = "/api/browse/";
+    if (viewParam === "latest") {
+      contentURL = '/api/getLatestVideos';
+    } else if (viewParam === "popular") {
+      contentURL = `/api/getPopularVideos`;
+    }
     
     fetch(contentURL)
       .then(response => response.json())
