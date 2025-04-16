@@ -57,6 +57,30 @@ wss.on('connection', (ws) => {
 // Serve static files
 app.use(express.static('public'));
 
+  // Extract name parameters from item name: <exercise>_<Date in YYYYMMDD>_<duration min>_<instructor>_<Type>_<Title>.mp4
+function parseFileName(fileName) {
+  const nameParts = fileName.split('_');
+  const exercise = nameParts[0];
+  const date = nameParts[1];
+  const duration = nameParts[2];
+  const instructor = nameParts[3];
+  const type = nameParts[4];
+  const music = nameParts[5];
+  const title = nameParts.slice(6).join('_').replace('.mp4', '');
+
+  return {
+    name: fileName,
+    path: fileName, //path.join(relativePath, fileName)
+    exercise: exercise,
+    date: date,
+    duration: duration,
+    instructor: instructor,
+    type: type,
+    music: music,
+    title: title
+  };
+}
+
 // Function to scan directory for videos and subfolders
 function scanDirectory(dirPath, relativePath = '') {
   const result = {
@@ -84,30 +108,9 @@ function scanDirectory(dirPath, relativePath = '') {
         path: path.join(relativePath, item)
       });
     } else if (stats.isFile() && path.extname(item).toLowerCase() === '.mp4') {
-      // Extract name parameters from item name: Peloton_20240429_10_Kendall Toole_Dance_10 min Cool Down Ride.mp4 => provider=Peloton, date=20240429, duration=10, instructor=Kendall Toole, type=Dance, title=10 min Cool Down Ride
-      const nameParts = item.split('_');
-      const exercise = nameParts[0];
-      const date = nameParts[1];
-      const duration = nameParts[2];
-      const instructor = nameParts[3];
-      const theme = nameParts[4];
-      const music = nameParts[5];
-      const title = nameParts.slice(6).join('_').replace('.mp4', '');
 
-      // push video details to result including exercise, date, duration, instructor, theme, music, title
-      result.videos.push({
-        name: item,
-        path: path.join(relativePath, item),
-        size: stats.size,
-        modified: stats.mtime,
-        exercise: exercise,
-        date: date,
-        duration: duration,
-        instructor: instructor,
-        theme: theme,
-        music: music,
-        title: title
-      });
+      // push video details to result including exercise, date, duration, instructor, type, music, title
+      result.videos.push(parseFileName(item));
     }
   }
   
@@ -166,6 +169,11 @@ function videoPlayed(videoName) {
 
 // API endpoint to get the vide file names deduplicated from latest 25 timestamp files sorted by timestamp
 app.get('/api/getLatestVideos', (req, res) => {
+  const result = {
+    folders: [],
+    videos: []
+  };
+
   const statsDir = path.join(__dirname, 'stats');
   
   // Read the stats directory
@@ -185,16 +193,21 @@ app.get('/api/getLatestVideos', (req, res) => {
     
     // Extract unique video names from the latest files
     const videoNames = new Set();
+    let videoCount = 0;
     
     txtFiles.forEach(file => {
       const filePath = path.join(statsDir, file);
       const content = fs.readFileSync(filePath, 'utf8');
       videoNames.add(content.trim());
+      if (videoNames.size > videoCount) {
+        videoCount = videoNames.size;
+        result.videos.push(parseFileName(content.trim()));
+      }
     });
     
     // Return only 25 elements
-    const latestVideos = Array.from(videoNames).slice(0, 25);
-    res.json(Array.from(latestVideos));
+    result.videos = Array.from(result.videos).slice(0, 25);
+    res.json(result);
   });
 });
 

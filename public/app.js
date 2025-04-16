@@ -237,6 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   ]
 
+  // Extract View Query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewParam = urlParams.get('view') || 'all';
+
   // Elements
   const galleryView = document.getElementById('gallery-view');
   const playerView = document.getElementById('player-view');
@@ -266,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     music: '',
     exercise: '',
     duration: '',
-    theme: ''
+    type: ''
   };
   
   // Initialize the application
@@ -315,8 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.id == "duration-filter") {
       currentFilters.duration = selectedValue;
     }
-    if (e.target.id == "theme-filter") {
-      currentFilters.theme = selectedValue;
+    if (e.target.id == "type-filter") {
+      currentFilters.type = selectedValue;
     }
 
     console.log(currentFilters);
@@ -332,8 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
       filteredVideos = filteredVideos.filter(video => video.duration === currentFilters.duration);
     }
 
-    if (currentFilters.theme !== '') {
-      filteredVideos = filteredVideos.filter(video => video.theme === currentFilters.theme);
+    if (currentFilters.type !== '') {
+      filteredVideos = filteredVideos.filter(video => video.type === currentFilters.type);
     }
 
     if (currentFilters.instructor !== '') {
@@ -383,8 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
     showLoading();
     currentPath = path;
     updateBreadcrumb(path);
+
+    contentURL = viewParam === "all" ? `/api/browse/${path}` : '/api/getLatestVideos';
     
-    fetch(`/api/browse/${path}`)
+    fetch(contentURL)
       .then(response => response.json())
       .then(data => {
         receivedData = data;
@@ -401,8 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const durations = [...new Set(data.videos.map(video => video.duration))];
         createDropdownFilter(durations, 'duration-filter', 'Durations', filterVideosBySelections);
 
-        const themes = [...new Set(data.videos.map(video => video.theme))];
-        createDropdownFilter(themes, 'theme-filter', 'Themes', filterVideosBySelections);
+        const types = [...new Set(data.videos.map(video => video.type))];
+        createDropdownFilter(types, 'type-filter', 'Types', filterVideosBySelections);
 
         const instructors = [...new Set(data.videos.map(video => video.instructor))];
         createDropdownFilter(instructors, 'instructor-filter', 'Instructors', filterVideosBySelections);
@@ -567,7 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="video-meta">
         <span class="video-instructor">${video.instructor}</span> •
         <span class="video-duration">${video.duration}m</span> •
-        <span class="video-theme">${video.theme}</span> <br/>
+        <span class="video-type">${video.type}</span> <br/>
         ${formatDate(video.date)} •
         ${video.music}
       </div>
