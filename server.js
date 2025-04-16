@@ -144,6 +144,62 @@ app.get('/api/browse', (req, res) => {
   }
 });
 
+// function to store timestamp as a file in the 'stats' folder with the contents being the filename when a get videos request is made
+function videoPlayed(videoName) {
+  const timestamp = Math.floor(+new Date() / 1000)
+  const statsDir = path.join(__dirname, 'stats');
+  
+  // Create stats directory if it doesn't exist
+  if (!fs.existsSync(statsDir)) {
+    fs.mkdirSync(statsDir, { recursive: true });
+  }
+  
+  const filePath = path.join(statsDir, `${timestamp}.txt`);
+  
+  fs.writeFile(filePath, videoName, (err) => {
+    if (err) {
+      console.error('Error writing timestamp file:', err);
+    }    
+  });
+}
+
+
+// API endpoint to get the vide file names deduplicated from latest 25 timestamp files sorted by timestamp
+app.get('/api/getLatestVideos', (req, res) => {
+  const statsDir = path.join(__dirname, 'stats');
+  
+  // Read the stats directory
+  fs.readdir(statsDir, (err, files) => {
+    if (err) {
+      console.error('Error reading stats directory:', err);
+      return res.status(500).json({ error: 'Failed to read stats directory' });
+    }
+    
+    // Filter for .txt files and sort by timestamp
+    const txtFiles = files.filter(file => file.endsWith('.txt')).sort((a, b) => {
+      // Extract timestamps from filenames
+      const timestampA = a.split('.')[0];
+      const timestampB = b.split('.')[0];
+      return timestampA < timestampB ? 1 : -1;
+    }).slice(0, 50);
+    
+    // Extract unique video names from the latest files
+    const videoNames = new Set();
+    
+    txtFiles.forEach(file => {
+      const filePath = path.join(statsDir, file);
+      const content = fs.readFileSync(filePath, 'utf8');
+      videoNames.add(content.trim());
+    });
+    
+    // Return only 25 elements
+    const latestVideos = Array.from(videoNames).slice(0, 25);
+    res.json(Array.from(latestVideos));
+  });
+});
+
+
+
 // Serve video files
 app.get('/videos/*', (req, res) => {
   const relativePath = req.params[0];
@@ -151,6 +207,8 @@ app.get('/videos/*', (req, res) => {
   const sanitizedPath = relativePath.replace(/\.\./g, '');
   const videoPath = path.join(__dirname, 'videos', sanitizedPath);
   
+  videoPlayed(relativePath)
+
   // Check if file exists
   if (!fs.existsSync(videoPath)) {
     return res.status(404).send('Video not found');
