@@ -113,6 +113,12 @@ function scanDirectory(dirPath, relativePath = '') {
       result.videos.push(parseFileName(item));
     }
   }
+  // Sort videos by date (YYYYMMDD) in descending order
+  result.videos.sort((a, b) => {
+    const dateA = a.date;
+    const dateB = b.date;
+    return dateB.localeCompare(dateA);
+  });
   
   return result;
 }

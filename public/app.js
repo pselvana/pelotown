@@ -565,24 +565,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const infoPanel = document.createElement('div');
     infoPanel.className = 'info-panel';
-    infoPanel.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    //move infoPanel to bottom of thumbnail
-    infoPanel.style.position = 'absolute';
-    infoPanel.style.bottom = '0';
-    infoPanel.style.left = '0';
-    infoPanel.style.width = '100%';
-    infoPanel.style.padding = '3px';
-    infoPanel.style.fontSize = '13px';
+
     infoPanel.innerHTML = `
       <div class="video-title">${video.title}</div>
       <div class="video-meta">
-        <span class="video-instructor">${video.instructor}</span> •
-        <span class="video-duration">${video.duration}m</span> •
-        <span class="video-type">${video.type}</span> <br/>
+        <span class="video-instructor">${video.instructor}</span><br/>
         ${formatDate(video.date)} •
         ${video.music}
       </div>
       `;
+
+    // Add exercise as a small vertical badge to top left corner of thumbnail
+    const exerciseBadge = document.createElement('div');
+    exerciseBadge.className = 'exercise-badge';
+    exerciseBadge.textContent = `${video.exercise}`;
+    thumbnail.appendChild(exerciseBadge);
+
+
+    // Add duration as a small badge to top right corner of thumbnail
+    const durationBadge = document.createElement('div');
+    durationBadge.className = 'duration-badge';
+    durationBadge.textContent = `${video.duration}m`;
+    thumbnail.appendChild(durationBadge);
+
+    // Add type as a small badge to bottom right corner of thumbnail
+    const typeBadge = document.createElement('div');
+    typeBadge.className = 'type-badge';
+    typeBadge.textContent = `${video.type}`;
+    thumbnail.appendChild(typeBadge);
+    
     thumbnail.appendChild(infoPanel);
 
     // Add double-click event
