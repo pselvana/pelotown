@@ -248,11 +248,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const filterContainer = document.getElementById('filter-container');
   const videoPlayer = document.getElementById('video-player');
   const closeVideoBtn = document.getElementById('close-video');
-  const metricsOverlay = document.querySelector('.metrics-overlay');
   const cadenceValue = document.getElementById('cadence-value');
   const resistanceValue = document.getElementById('resistance-value');
   const powerValue = document.getElementById('power-value');
   const speedValue = document.getElementById('speed-value');
+  const liveMetricsBar = document.getElementById('live-metrics-bar');
+  const liveCadence = document.getElementById('live-cadence');
+  const liveResistance = document.getElementById('live-resistance');
+  const liveSpeed = document.getElementById('live-speed');
+  const livePower = document.getElementById('live-power');
   const breadcrumb = document.getElementById('breadcrumb');
 
   let lastCadence = 0;
@@ -277,11 +281,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize the application
   function init() {
-    // Mark the active view-nav button
-    document.querySelectorAll('.view-nav .btn').forEach(btn => {
-      const isActive = btn.dataset.view === viewParam;
-      btn.classList.toggle('btn--primary', isActive);
-      btn.classList.toggle('btn--secondary', !isActive);
+    // Mark the active nav link
+    document.querySelectorAll('.view-nav .nav-link').forEach(link => {
+      link.classList.toggle('nav-link--active', link.dataset.view === viewParam);
     });
 
     loadContent(currentPath);
@@ -364,70 +366,50 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Create a chip-group filter (for exercise, duration, type, music)
-  function createChipFilter(options, id, label, onChangeHandler) {
-    if (label === 'Durations') {
-      options.sort((a, b) => parseInt(a) - parseInt(b));
-    } else {
-      options.sort((a, b) => a.localeCompare(b));
-    }
+  // Create the single-row filter bar
+  function createFilterBar(data) {
+    filterContainer.innerHTML = '';
 
-    const group = document.createElement('div');
-    group.className = 'chip-group';
+    const bar = document.createElement('div');
+    bar.className = 'filter-bar';
 
-    const groupLabel = document.createElement('span');
-    groupLabel.className = 'chip-group-label';
-    groupLabel.textContent = label;
-    group.appendChild(groupLabel);
-
-    const allChip = document.createElement('button');
-    allChip.className = 'chip chip--selected';
-    allChip.textContent = 'All';
-    allChip.addEventListener('click', () => {
-      group.querySelectorAll('.chip').forEach(c => c.classList.remove('chip--selected'));
-      allChip.classList.add('chip--selected');
-      onChangeHandler({ target: { id, value: '' } });
+    // "ALL EXERCISES" reset pill
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-pill filter-pill--active';
+    allBtn.id = 'filter-all-btn';
+    allBtn.textContent = 'ALL EXERCISES';
+    allBtn.addEventListener('click', () => {
+      currentFilters = { instructor: '', music: '', exercise: '', duration: '', type: '' };
+      bar.querySelectorAll('.filter-select').forEach(s => { s.value = ''; });
+      allBtn.classList.add('filter-pill--active');
+      contentGrid.innerHTML = '';
+      receivedData.videos.forEach(v => createVideoThumbnail(v));
     });
-    group.appendChild(allChip);
+    bar.appendChild(allBtn);
 
-    options.forEach(option => {
-      const chip = document.createElement('button');
-      chip.className = 'chip';
-      chip.textContent = option;
-      chip.addEventListener('click', () => {
-        group.querySelectorAll('.chip').forEach(c => c.classList.remove('chip--selected'));
-        chip.classList.add('chip--selected');
-        onChangeHandler({ target: { id, value: option } });
+    const filterDefs = [
+      { id: 'duration-filter', label: 'DURATION', values: [...new Set(data.videos.map(v => v.duration))].sort((a, b) => parseInt(a) - parseInt(b)) },
+      { id: 'type-filter',     label: 'TYPE',     values: [...new Set(data.videos.map(v => v.type))].sort() },
+      { id: 'instructor-filter', label: 'INSTRUCTOR', values: [...new Set(data.videos.map(v => v.instructor))].sort() },
+      { id: 'music-filter',    label: 'MUSIC',    values: [...new Set(data.videos.map(v => v.music))].sort() },
+    ];
+
+    filterDefs.forEach(({ id, label, values }) => {
+      const select = document.createElement('select');
+      select.id = id;
+      select.className = 'filter-select';
+      select.innerHTML = `<option value="">${label}</option>` +
+        values.map(v => `<option value="${v}">${v}</option>`).join('');
+      select.addEventListener('change', (e) => {
+        filterVideosBySelections(e);
+        // Deactivate "ALL EXERCISES" pill when any filter is active
+        const anyActive = Object.values(currentFilters).some(v => v !== '');
+        allBtn.classList.toggle('filter-pill--active', !anyActive);
       });
-      group.appendChild(chip);
+      bar.appendChild(select);
     });
 
-    filterContainer.appendChild(group);
-  }
-
-  // Create a styled select for instructor (60+ options — chips impractical)
-  function createInstructorSelect(options, id, onChangeHandler) {
-    options.sort((a, b) => a.localeCompare(b));
-
-    const group = document.createElement('div');
-    group.className = 'chip-group';
-
-    const groupLabel = document.createElement('span');
-    groupLabel.className = 'chip-group-label';
-    groupLabel.textContent = 'Instructor';
-    group.appendChild(groupLabel);
-
-    const select = document.createElement('select');
-    select.id = id;
-    select.className = 'instructor-select';
-    select.innerHTML = `
-      <option value="">All Instructors</option>
-      ${options.map(o => `<option value="${o}">${o}</option>`).join('')}
-    `;
-    select.addEventListener('change', onChangeHandler);
-    group.appendChild(select);
-
-    filterContainer.appendChild(group);
+    filterContainer.appendChild(bar);
   }
 
   // Load content (folders and videos) from the server
@@ -456,20 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const exercises = [...new Set(data.videos.map(video => video.exercise))];
-        createChipFilter(exercises, 'exercise-filter', 'Exercise', filterVideosBySelections);
-
-        const durations = [...new Set(data.videos.map(video => video.duration))];
-        createChipFilter(durations, 'duration-filter', 'Durations', filterVideosBySelections);
-
-        const types = [...new Set(data.videos.map(video => video.type))];
-        createChipFilter(types, 'type-filter', 'Type', filterVideosBySelections);
-
-        const music = [...new Set(data.videos.map(video => video.music))];
-        createChipFilter(music, 'music-filter', 'Music', filterVideosBySelections);
-
-        const instructorOptions = [...new Set(data.videos.map(video => video.instructor))];
-        createInstructorSelect(instructorOptions, 'instructor-filter', filterVideosBySelections);
+        createFilterBar(data);
 
         // Create folder items
         data.folders.forEach(folder => {
@@ -584,52 +553,54 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Create thumbnail for video
   function createVideoThumbnail(video) {
-    const thumbnail = document.createElement('div');
-    thumbnail.className = 'video-thumbnail';
-    thumbnail.dataset.videoPath = video.path;
-    
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.dataset.videoPath = video.path;
+
+    // Image wrapper
+    const imageWrapper = document.createElement('div');
+    imageWrapper.className = 'card-image-wrapper';
+
     const match = instructors.find(i => i.name === video.instructor);
     if (match) {
-      thumbnail.style.backgroundImage = `url(${match.image_url})`;
-      thumbnail.style.backgroundSize = 'cover';
-      thumbnail.style.backgroundPosition = 'center';
-      thumbnail.style.backgroundRepeat = 'no-repeat';
+      imageWrapper.style.backgroundImage = `url(${match.image_url})`;
     } else {
-      thumbnail.innerHTML = `
-        <div class="thumbnail-img">
-          <i class="fas fa-play-circle"></i>
-        </div>
-      `;
+      imageWrapper.innerHTML = `<div class="card-image-placeholder"><i class="fas fa-play-circle"></i></div>`;
     }
 
-    const exerciseBadge = document.createElement('div');
-    exerciseBadge.className = 'exercise-badge';
+    // Badges
+    const badges = document.createElement('div');
+    badges.className = 'card-badges';
+
+    const exerciseBadge = document.createElement('span');
+    exerciseBadge.className = 'badge badge--exercise';
     exerciseBadge.textContent = video.exercise;
-    thumbnail.appendChild(exerciseBadge);
+    badges.appendChild(exerciseBadge);
 
-    const durationBadge = document.createElement('div');
-    durationBadge.className = 'duration-badge';
-    durationBadge.textContent = `${video.duration}m`;
-    thumbnail.appendChild(durationBadge);
+    const levelBadge = document.createElement('span');
+    levelBadge.className = `badge badge--${video.type.toLowerCase()}`;
+    levelBadge.textContent = video.type;
+    badges.appendChild(levelBadge);
 
-    const infoPanel = document.createElement('div');
-    infoPanel.className = 'info-panel';
-    infoPanel.innerHTML = `
-      <div class="video-title">${video.title}</div>
-      <div class="video-meta">${video.instructor} &middot; ${formatDate(video.date)} &middot; ${video.music} &middot; ${video.type}</div>
+    imageWrapper.appendChild(badges);
+    card.appendChild(imageWrapper);
+
+    // Info section below image
+    const cardInfo = document.createElement('div');
+    cardInfo.className = 'card-info';
+    const durationFormatted = `${String(video.duration).padStart(2, '0')}:00`;
+    cardInfo.innerHTML = `
+      <div class="card-title-row">
+        <span class="video-title">${video.title}</span>
+        <span class="duration-label">${durationFormatted}</span>
+      </div>
+      <div class="video-meta">${video.instructor} &nbsp;<i class="fas fa-music"></i>&nbsp; ${video.music}</div>
     `;
-    thumbnail.appendChild(infoPanel);
+    card.appendChild(cardInfo);
 
-    // Add double-click event
-    thumbnail.addEventListener('dblclick', () => {
-      playVideo(video.path);
-    });
+    card.addEventListener('dblclick', () => playVideo(video.path));
 
-    infoPanel.addEventListener('dblclick', () => {
-      playVideo(video.path);
-    });
-    
-    contentGrid.appendChild(thumbnail);
+    contentGrid.appendChild(card);
   }
   
   // Play a video
@@ -639,7 +610,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     galleryView.classList.add('hidden');
     playerView.classList.remove('hidden');
-    metricsOverlay.classList.add('metrics-overlay--active');
 
     videoPlayer.oncanplay = () => {
       videoPlayer.play();
@@ -682,20 +652,25 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateMetrics(data) {
     if ('cadence' in data) {
       cadenceValue.textContent = Math.round(data.cadence);
+      liveCadence.textContent = Math.round(data.cadence);
       lastCadence = data.cadence;
     }
-    
+
     if ('resistance' in data) {
       resistanceValue.textContent = Math.round(data.resistance);
+      liveResistance.textContent = Math.round(data.resistance);
       lastResistance = data.resistance;
     }
 
-    // REVISIT
     // Power (in watts) = (Resistance % × Cadence²) ÷ a constant (30 for peloton).
-    powerValue.textContent = (Math.round((lastResistance * Math.pow(lastCadence, 2)) / 30));
+    const power = Math.round((lastResistance * Math.pow(lastCadence, 2)) / 30);
+    const speed = Math.round(lastResistance * 30 * 3.6);
+    powerValue.textContent = power;
+    speedValue.textContent = speed;
+    livePower.textContent = power;
+    liveSpeed.textContent = speed;
 
-    // convert meters per second to km/h
-    speedValue.textContent = (Math.round(lastResistance * 30 * 3.6));
+    liveMetricsBar.classList.remove('hidden');
   }
   
   // Setup event listeners
@@ -712,7 +687,6 @@ document.addEventListener('DOMContentLoaded', () => {
       videoPlayer.src = '';
 
       playerView.classList.add('hidden');
-      metricsOverlay.classList.remove('metrics-overlay--active');
       galleryView.classList.remove('hidden');
     });
     

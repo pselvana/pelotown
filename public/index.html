@@ -14,19 +14,47 @@
 <body>
   <header>
     <a href="/" class="logo" id="logo-home">
-      <i class="fas fa-bicycle"></i>
-      <h1>PelotOWN</h1>
+      <div class="logo-avatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="logo-text">
+        <span class="logo-brand">Pelot</span>
+        <span class="logo-sub">OWN</span>
+      </div>
     </a>
     <nav class="view-nav">
-      <a href="/"><button class="btn btn--primary" data-view="all">All Videos</button></a>
-      <a href="/?view=latest"><button class="btn btn--secondary" data-view="latest">Latest Played</button></a>
-      <a href="/?view=popular"><button class="btn btn--secondary" data-view="popular">Popular</button></a>
+      <a href="/" class="nav-link" data-view="all">Workouts</a>
+      <a href="/?view=latest" class="nav-link" data-view="latest">Latest</a>
+      <a href="/?view=popular" class="nav-link" data-view="popular">Popular</a>
     </nav>
   </header>
 
   <main>
     <!-- Video Gallery View -->
     <section id="gallery-view">
+      <div class="gallery-hero">
+        <h2>Class Library</h2>
+        <p>Your next breakthrough starts here. Filter by intensity, instructor, or rhythm. Find your ride.</p>
+      </div>
+      <div id="live-metrics-bar" class="live-metrics-bar hidden">
+        <span class="live-metrics-label">Live</span>
+        <div class="live-metric">
+          <span id="live-cadence" class="live-metric-value">0</span>
+          <span class="live-metric-unit">RPM</span>
+        </div>
+        <div class="live-metric">
+          <span id="live-resistance" class="live-metric-value">0</span>
+          <span class="live-metric-unit">% Resistance</span>
+        </div>
+        <div class="live-metric">
+          <span id="live-speed" class="live-metric-value">0</span>
+          <span class="live-metric-unit">KM/H</span>
+        </div>
+        <div class="live-metric">
+          <span id="live-power" class="live-metric-value">0</span>
+          <span class="live-metric-unit">W</span>
+        </div>
+      </div>
       <div class="breadcrumb-container">
         <nav aria-label="breadcrumb">
           <ol id="breadcrumb"></ol>

@@ -21,24 +21,28 @@ let currentMetrics = {
 wss.on('connection', (ws) => {
   console.log('Client connected');
   clients.add(ws);
-  
+
+  ws.on('error', (err) => console.error('WebSocket client error:', err));
+
   // Send current metrics to newly connected client
   ws.send(JSON.stringify(currentMetrics));
-  
+
   // Handle messages from clients
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
-      
+
       // Update metrics if valid data received
       if ('cadence' in data || 'resistance' in data) {
         if ('cadence' in data) currentMetrics.cadence = data.cadence;
         if ('resistance' in data) currentMetrics.resistance = data.resistance;
-        
+
         // Broadcast updated metrics to all clients
         clients.forEach(client => {
           if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(currentMetrics));
+            client.send(JSON.stringify(currentMetrics), (err) => {
+              if (err) console.error('Send error:', err);
+            });
           }
         });
       }
@@ -46,13 +50,15 @@ wss.on('connection', (ws) => {
       console.error('Error processing message:', e);
     }
   });
-  
+
   // Handle client disconnection
   ws.on('close', () => {
     console.log('Client disconnected');
     clients.delete(ws);
   });
 });
+
+wss.on('error', (err) => console.error('WebSocket server error:', err));
 
 // Serve static files
 app.use(express.static('public'));
