@@ -245,8 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const galleryView = document.getElementById('gallery-view');
   const playerView = document.getElementById('player-view');
   const contentGrid = document.getElementById('content-grid');
+  const filterContainer = document.getElementById('filter-container');
   const videoPlayer = document.getElementById('video-player');
   const closeVideoBtn = document.getElementById('close-video');
+  const metricsOverlay = document.querySelector('.metrics-overlay');
   const cadenceValue = document.getElementById('cadence-value');
   const resistanceValue = document.getElementById('resistance-value');
   const powerValue = document.getElementById('power-value');
@@ -275,6 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize the application
   function init() {
+    // Mark the active view-nav button
+    document.querySelectorAll('.view-nav .btn').forEach(btn => {
+      const isActive = btn.dataset.view === viewParam;
+      btn.classList.toggle('btn--primary', isActive);
+      btn.classList.toggle('btn--secondary', !isActive);
+    });
+
     loadContent(currentPath);
     setupWebSocket();
     setupEventListeners();
@@ -355,31 +364,70 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function createDropdownFilter(options, id, label, onChangeHandler) {
-    const dropdownFilter = document.createElement('select');
-    
-    // Sort options alphabetically and sort numbers by value
-    if (label === "Durations") {
-      options.sort((a, b) => {
-        const numA = parseInt(a);
-        const numB = parseInt(b);
-        return numA - numB;
-      }
-      );
-    } 
-    else {
+  // Create a chip-group filter (for exercise, duration, type, music)
+  function createChipFilter(options, id, label, onChangeHandler) {
+    if (label === 'Durations') {
+      options.sort((a, b) => parseInt(a) - parseInt(b));
+    } else {
       options.sort((a, b) => a.localeCompare(b));
     }
 
-    dropdownFilter.id = id;
-    dropdownFilter.innerHTML = `
-      <option value="">All ${label}</option>
-      ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+    const group = document.createElement('div');
+    group.className = 'chip-group';
+
+    const groupLabel = document.createElement('span');
+    groupLabel.className = 'chip-group-label';
+    groupLabel.textContent = label;
+    group.appendChild(groupLabel);
+
+    const allChip = document.createElement('button');
+    allChip.className = 'chip chip--selected';
+    allChip.textContent = 'All';
+    allChip.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('chip--selected'));
+      allChip.classList.add('chip--selected');
+      onChangeHandler({ target: { id, value: '' } });
+    });
+    group.appendChild(allChip);
+
+    options.forEach(option => {
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.textContent = option;
+      chip.addEventListener('click', () => {
+        group.querySelectorAll('.chip').forEach(c => c.classList.remove('chip--selected'));
+        chip.classList.add('chip--selected');
+        onChangeHandler({ target: { id, value: option } });
+      });
+      group.appendChild(chip);
+    });
+
+    filterContainer.appendChild(group);
+  }
+
+  // Create a styled select for instructor (60+ options — chips impractical)
+  function createInstructorSelect(options, id, onChangeHandler) {
+    options.sort((a, b) => a.localeCompare(b));
+
+    const group = document.createElement('div');
+    group.className = 'chip-group';
+
+    const groupLabel = document.createElement('span');
+    groupLabel.className = 'chip-group-label';
+    groupLabel.textContent = 'Instructor';
+    group.appendChild(groupLabel);
+
+    const select = document.createElement('select');
+    select.id = id;
+    select.className = 'instructor-select';
+    select.innerHTML = `
+      <option value="">All Instructors</option>
+      ${options.map(o => `<option value="${o}">${o}</option>`).join('')}
     `;
-    dropdownFilter.style.marginBottom = '10px';
-    dropdownFilter.style.marginRight = '10px';
-    dropdownFilter.addEventListener('change', onChangeHandler);
-    contentGrid.parentElement.insertBefore(dropdownFilter, contentGrid);
+    select.addEventListener('change', onChangeHandler);
+    group.appendChild(select);
+
+    filterContainer.appendChild(group);
   }
 
   // Load content (folders and videos) from the server
@@ -390,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     contentURL = "/api/browse/";
     if (viewParam === "latest") {
-      contentURL = '/api/getLatestVideos';
+      contentURL = '/api/getLatestVideos'; 
     } else if (viewParam === "popular") {
       contentURL = `/api/getPopularVideos`;
     }
@@ -400,26 +448,28 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(data => {
         receivedData = data;
         contentGrid.innerHTML = '';
-        
+        filterContainer.innerHTML = '';
+
         // No content case
         if (data.folders.length === 0 && data.videos.length === 0) {
           showEmptyState();
           return;
         }
+
         const exercises = [...new Set(data.videos.map(video => video.exercise))];
-        createDropdownFilter(exercises, 'exercise-filter', 'Exercises', filterVideosBySelections);
-        
+        createChipFilter(exercises, 'exercise-filter', 'Exercise', filterVideosBySelections);
+
         const durations = [...new Set(data.videos.map(video => video.duration))];
-        createDropdownFilter(durations, 'duration-filter', 'Durations', filterVideosBySelections);
+        createChipFilter(durations, 'duration-filter', 'Durations', filterVideosBySelections);
 
         const types = [...new Set(data.videos.map(video => video.type))];
-        createDropdownFilter(types, 'type-filter', 'Types', filterVideosBySelections);
+        createChipFilter(types, 'type-filter', 'Type', filterVideosBySelections);
 
-        const instructors = [...new Set(data.videos.map(video => video.instructor))];
-        createDropdownFilter(instructors, 'instructor-filter', 'Instructors', filterVideosBySelections);
-        
         const music = [...new Set(data.videos.map(video => video.music))];
-        createDropdownFilter(music, 'music-filter', 'Music', filterVideosBySelections);
+        createChipFilter(music, 'music-filter', 'Music', filterVideosBySelections);
+
+        const instructorOptions = [...new Set(data.videos.map(video => video.instructor))];
+        createInstructorSelect(instructorOptions, 'instructor-filter', filterVideosBySelections);
 
         // Create folder items
         data.folders.forEach(folder => {
@@ -444,32 +494,28 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Update breadcrumb navigation
   function updateBreadcrumb(path) {
-    // Clear all except Home
-    while (breadcrumb.children.length > 1) {
-      breadcrumb.removeChild(breadcrumb.lastChild);
-    }
-    
+    breadcrumb.innerHTML = '';
+
     if (path === '') return;
-    
-    // Split path into segments
+
     const segments = path.split('/');
     let currentSegmentPath = '';
-    
+
     segments.forEach((segment, index) => {
       currentSegmentPath += (index > 0 ? '/' : '') + segment;
-      
+
       const li = document.createElement('li');
       const a = document.createElement('a');
-      
+
       a.href = '#';
       a.textContent = segment;
       a.dataset.path = currentSegmentPath;
-      
+
       a.addEventListener('click', (e) => {
         e.preventDefault();
         loadContent(e.target.dataset.path);
       });
-      
+
       li.appendChild(a);
       breadcrumb.appendChild(li);
     });
@@ -548,52 +594,30 @@ document.addEventListener('DOMContentLoaded', () => {
       thumbnail.style.backgroundSize = 'cover';
       thumbnail.style.backgroundPosition = 'center';
       thumbnail.style.backgroundRepeat = 'no-repeat';
-
-      // add 80px tall thumbnail box
-      thumbnail.style.height = '260px';
-      thumbnail.innerHTML = `
-        `;
-    }
-    else {
+    } else {
       thumbnail.innerHTML = `
         <div class="thumbnail-img">
           <i class="fas fa-play-circle"></i>
         </div>
       `;
     }
-    // Add info panel at the bottom of thumbnail with white background
 
-    const infoPanel = document.createElement('div');
-    infoPanel.className = 'info-panel';
-
-    infoPanel.innerHTML = `
-      <div class="video-title">${video.title}</div>
-      <div class="video-meta">
-        <span class="video-instructor">${video.instructor}</span><br/>
-        ${formatDate(video.date)} •
-        ${video.music}
-      </div>
-      `;
-
-    // Add exercise as a small vertical badge to top left corner of thumbnail
     const exerciseBadge = document.createElement('div');
     exerciseBadge.className = 'exercise-badge';
-    exerciseBadge.textContent = `${video.exercise}`;
+    exerciseBadge.textContent = video.exercise;
     thumbnail.appendChild(exerciseBadge);
 
-
-    // Add duration as a small badge to top right corner of thumbnail
     const durationBadge = document.createElement('div');
     durationBadge.className = 'duration-badge';
     durationBadge.textContent = `${video.duration}m`;
     thumbnail.appendChild(durationBadge);
 
-    // Add type as a small badge to bottom right corner of thumbnail
-    const typeBadge = document.createElement('div');
-    typeBadge.className = 'type-badge';
-    typeBadge.textContent = `${video.type}`;
-    thumbnail.appendChild(typeBadge);
-    
+    const infoPanel = document.createElement('div');
+    infoPanel.className = 'info-panel';
+    infoPanel.innerHTML = `
+      <div class="video-title">${video.title}</div>
+      <div class="video-meta">${video.instructor} &middot; ${formatDate(video.date)} &middot; ${video.music} &middot; ${video.type}</div>
+    `;
     thumbnail.appendChild(infoPanel);
 
     // Add double-click event
@@ -612,11 +636,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function playVideo(videoPath) {
     videoPlayer.src = `/videos/${videoPath}`;
     videoPlayer.load();
-    
+
     galleryView.classList.add('hidden');
     playerView.classList.remove('hidden');
-    
-    // Play when ready
+    metricsOverlay.classList.add('metrics-overlay--active');
+
     videoPlayer.oncanplay = () => {
       videoPlayer.play();
     };
@@ -676,9 +700,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Setup event listeners
   function setupEventListeners() {
-    // Home breadcrumb link
-    const homeLink = breadcrumb.querySelector('a[data-path=""]');
-    homeLink.addEventListener('click', (e) => {
+    // Logo → go home
+    document.getElementById('logo-home').addEventListener('click', (e) => {
       e.preventDefault();
       loadContent('');
     });
@@ -687,8 +710,9 @@ document.addEventListener('DOMContentLoaded', () => {
     closeVideoBtn.addEventListener('click', () => {
       videoPlayer.pause();
       videoPlayer.src = '';
-      
+
       playerView.classList.add('hidden');
+      metricsOverlay.classList.remove('metrics-overlay--active');
       galleryView.classList.remove('hidden');
     });
     

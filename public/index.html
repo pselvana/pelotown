@@ -5,38 +5,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PelotOWN - Use the bike you bought.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
   <header>
-    <div class="logo">
+    <a href="/" class="logo" id="logo-home">
       <i class="fas fa-bicycle"></i>
       <h1>PelotOWN</h1>
-    </div>
-    <div class="tagline">Use the bike you bought.</div>
+    </a>
+    <nav class="view-nav">
+      <a href="/"><button class="btn btn--primary" data-view="all">All Videos</button></a>
+      <a href="/?view=latest"><button class="btn btn--secondary" data-view="latest">Latest Played</button></a>
+      <a href="/?view=popular"><button class="btn btn--secondary" data-view="popular">Popular</button></a>
+    </nav>
   </header>
 
   <main>
     <!-- Video Gallery View -->
     <section id="gallery-view">
-      <div class="gallery-header">
-        <h2>Your Workout Videos</h2>
-        <div>
-          <a href="/"><button class="styled-button">All Videos</button></a>
-          <a href="/?view=latest"><button class="styled-button">Latest Played</button></a>
-          <a href="/?view=popular"><button class="styled-button">Popular</button></a>
-        </div>
-
-        <div class="breadcrumb-container">
-          <nav aria-label="breadcrumb">
-            <ol id="breadcrumb">
-              <li><a href="/" data-path="">Home</a></li>
-            </ol>
-          </nav>
-        </div>
+      <div class="breadcrumb-container">
+        <nav aria-label="breadcrumb">
+          <ol id="breadcrumb"></ol>
+        </nav>
       </div>
-      
+
+      <div id="filter-container" class="filter-container"></div>
       <div id="content-grid"></div>
     </section>
 
@@ -44,27 +41,30 @@
     <section id="player-view" class="hidden">
       <div class="player-container">
         <video id="video-player" controls></video>
-        
+
         <div class="metrics-overlay">
-          <div class="metric cadence">
-            <div class="metric-label">CADENCE</div>
-            <div id="cadence-value">0</div>
+          <div class="metric-tile">
+            <div class="metric-label">Cadence</div>
+            <div id="cadence-value" class="metric-value">0</div>
             <div class="metric-unit">RPM</div>
-            <div class="metric-label">SPEED</div>
-            <div id="speed-value">0</div>
-            <div class="metric-unit">meters/s</div>   
           </div>
-          
-          <div class="metric resistance">
-            <div class="metric-label">RESISTANCE</div>
-            <div id="resistance-value">0</div>
+          <div class="metric-tile">
+            <div class="metric-label">Resistance</div>
+            <div id="resistance-value" class="metric-value">0</div>
             <div class="metric-unit">%</div>
-            <div class="metric-label">POWER</div>
-            <div id="power-value">0</div>
-            <div class="metric-unit">Watts</div>            
+          </div>
+          <div class="metric-tile">
+            <div class="metric-label">Speed</div>
+            <div id="speed-value" class="metric-value">0</div>
+            <div class="metric-unit">KM/H</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-label">Power</div>
+            <div id="power-value" class="metric-value">0</div>
+            <div class="metric-unit">Watts</div>
           </div>
         </div>
-        
+
         <button id="close-video" class="close-btn">
           <i class="fas fa-times"></i>
         </button>
@@ -73,7 +73,7 @@
   </main>
 
   <footer>
-    <p>PelotOWN &copy; 2025 - Use the bike you bought.</p>
+    <p>PelotOWN &copy; 2025 — Use the bike you bought.</p>
   </footer>
 
   <script src="app.js"></script>
