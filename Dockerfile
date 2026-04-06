@@ -1,40 +1,46 @@
 FROM node:20-alpine AS base
-
-# Create app directory
 WORKDIR /app
 
-# Install dependencies
+# Install native build tools (required for better-sqlite3)
+RUN apk add --no-cache python3 make g++
+
+# ── deps stage: install all dependencies ──────────────────────────────────────
 FROM base AS deps
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
-# Copy app source and build if needed
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# ── build stage: compile SvelteKit app ────────────────────────────────────────
+FROM deps AS builder
 COPY . .
-# Uncomment if you need to build your app (e.g., for TypeScript)
-# RUN npm run build
+RUN npm run build
 
-# Production image, copy all the files and run
+# ── production image ──────────────────────────────────────────────────────────
 FROM base AS runner
 
-# Create a non-root user and switch to it
 RUN addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 appuser \
-    && chown -R appuser:nodejs /app
+    && adduser --system --uid 1001 appuser
+
+WORKDIR /app
+
+# Copy built output and production node_modules
+COPY --from=builder --chown=appuser:nodejs /app/build ./build
+COPY --from=builder --chown=appuser:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:nodejs /app/server.ts ./server.ts
+COPY --from=builder --chown=appuser:nodejs /app/package.json ./package.json
+
+# Compile server.ts entrypoint using tsx (already in node_modules)
+# Alternatively: node --import tsx/esm server.ts at runtime
+RUN ./node_modules/.bin/tsx --version && echo "tsx ok"
+
 USER appuser
 
-# Copy only necessary files from the builder stage
-COPY --from=deps --chown=appuser:nodejs /app/node_modules ./node_modules
-# Uncomment if using a build step
-# COPY --from=builder --chown=appuser:nodejs /app/dist ./dist 
-COPY --chown=appuser:nodejs . .
-
-# Set NODE_ENV
 ENV NODE_ENV=production
+ENV VIDEOS_PATH=/app/videos
+ENV PORT=3000
 
-# Expose the port your app runs on
 EXPOSE 3000
 
-# Define the command to run your app
-CMD ["node", "server.js"]
+# Video files and database persist in this volume
+VOLUME ["/app/videos"]
+
+CMD ["node", "--import", "tsx/esm", "server.ts"]
