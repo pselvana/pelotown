@@ -52,6 +52,12 @@
 				>
 					Popular
 				</a>
+				<a
+					href="/?view=history"
+					class="btn btn-sm btn-ghost rounded-full {view === 'history' ? 'btn-primary' : ''}"
+				>
+					History
+				</a>
 				<button
 					class="btn btn-sm btn-ghost btn-circle ml-1"
 					onclick={() => (profileOpen = true)}

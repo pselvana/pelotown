@@ -57,5 +57,25 @@ export function initDb(): void {
     CREATE INDEX IF NOT EXISTS idx_plays_played_at ON plays(played_at DESC);
     CREATE INDEX IF NOT EXISTS idx_videos_date     ON videos(date DESC);
     CREATE INDEX IF NOT EXISTS idx_videos_path     ON videos(path);
+
+    CREATE TABLE IF NOT EXISTS workout_sessions (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      video_path      TEXT    NOT NULL DEFAULT '',
+      video_title     TEXT    NOT NULL DEFAULT '',
+      started_at      INTEGER NOT NULL,
+      ended_at        INTEGER NOT NULL DEFAULT 0,
+      duration_secs   INTEGER NOT NULL DEFAULT 0,
+      avg_cadence     REAL    NOT NULL DEFAULT 0,
+      max_cadence     INTEGER NOT NULL DEFAULT 0,
+      avg_resistance  REAL    NOT NULL DEFAULT 0,
+      max_resistance  INTEGER NOT NULL DEFAULT 0,
+      avg_power       REAL    NOT NULL DEFAULT 0,
+      max_power       INTEGER NOT NULL DEFAULT 0,
+      avg_speed       REAL    NOT NULL DEFAULT 0,
+      total_output    REAL    NOT NULL DEFAULT 0,
+      calories        INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_workout_sessions_started ON workout_sessions(started_at DESC);
   `);
 }
