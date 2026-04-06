@@ -1,6 +1,16 @@
 <script lang="ts">
 	import { metrics, metricsConnected } from '$lib/stores/metrics.js';
+	import { profile } from '$lib/stores/profile.js';
 	import MetricTile from './MetricTile.svelte';
+
+	const KMH_TO_MPH = 0.621371;
+
+	let displaySpeed = $derived(
+		$profile.speedUnit === 'mph'
+			? Math.round($metrics.speed * KMH_TO_MPH * 10) / 10
+			: $metrics.speed
+	);
+	let speedLabel = $derived($profile.speedUnit === 'mph' ? 'MPH' : 'KM/H');
 </script>
 
 {#if $metricsConnected && ($metrics.cadence > 0 || $metrics.resistance > 0)}
@@ -12,7 +22,7 @@
 		<div class="divider divider-horizontal m-0 h-8 self-center"></div>
 		<MetricTile label="Resistance" value={$metrics.resistance} unit="%" />
 		<div class="divider divider-horizontal m-0 h-8 self-center"></div>
-		<MetricTile label="Speed" value={$metrics.speed} unit="KM/H" />
+		<MetricTile label="Speed" value={displaySpeed} unit={speedLabel} />
 		<div class="divider divider-horizontal m-0 h-8 self-center"></div>
 		<MetricTile label="Power" value={$metrics.power} unit="W" />
 	</div>

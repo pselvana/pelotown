@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { connectMetrics } from '$lib/stores/metrics.js';
 	import { browser } from '$app/environment';
+	import ProfileSettings from '../components/ProfileSettings.svelte';
 
 	interface Props {
 		children: import('svelte').Snippet;
@@ -11,6 +12,7 @@
 	let { children }: Props = $props();
 
 	let view = $derived($page.url.searchParams.get('view') ?? 'all');
+	let profileOpen = $state(false);
 
 	onMount(() => {
 		if (!browser) return;
@@ -50,6 +52,17 @@
 				>
 					Popular
 				</a>
+				<button
+					class="btn btn-sm btn-ghost btn-circle ml-1"
+					onclick={() => (profileOpen = true)}
+					title="Profile Settings"
+					aria-label="Profile Settings"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="12" cy="8" r="4" />
+						<path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+					</svg>
+				</button>
 			</nav>
 		</div>
 	</header>
@@ -64,3 +77,7 @@
 		PelotOWN &copy; {new Date().getFullYear()}
 	</footer>
 </div>
+
+{#if profileOpen}
+	<ProfileSettings onclose={() => (profileOpen = false)} />
+{/if}

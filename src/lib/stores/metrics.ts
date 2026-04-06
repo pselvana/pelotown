@@ -1,8 +1,15 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import type { Metrics } from '../types.js';
+import { profile } from './profile.js';
 
 export const metrics = writable<Metrics>({ cadence: 0, resistance: 0, speed: 0, power: 0 });
 export const metricsConnected = writable(false);
+
+// Power multiplier k per bike model (resistance * cadence * k = watts)
+const POWER_K: Record<string, number> = {
+	bike: 2.0,
+	bike_plus: 3.0
+};
 
 export function connectMetrics(wsUrl: string): WebSocket {
 	const ws = new WebSocket(wsUrl);
@@ -15,8 +22,12 @@ export function connectMetrics(wsUrl: string): WebSocket {
 				cadence: number;
 				resistance: number;
 			};
-			const power = Math.round((resistance * cadence * cadence) / 30);
-			const speed = Math.round(resistance * 30 * 3.6 * 10) / 10;
+			const { bikeModel } = get(profile);
+			const k = POWER_K[bikeModel] ?? 2.0;
+			// Speed: Peloton wheel circumference formula — cadence * 0.233 km/h
+			const speed = Math.round(cadence * 0.233 * 10) / 10;
+			// Power: resistance * cadence * k (k=2.0 Bike, k=3.0 Bike+)
+			const power = Math.round(resistance * cadence * k);
 			metrics.set({ cadence, resistance, speed, power });
 		} catch {
 			// ignore
