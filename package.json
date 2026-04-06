@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "concurrently \"vite dev\" \"tsx watch ws-dev-server.ts\"",
     "build": "vite build",
-    "preview": "node build/index.js",
-    "start": "node build/index.js"
+    "preview": "node --import tsx/esm server.ts",
+    "start": "node --import tsx/esm server.ts"
   },
   "dependencies": {
     "@sveltejs/adapter-node": "^5.2.9",

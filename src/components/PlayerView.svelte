@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { metrics } from '$lib/stores/metrics.js';
 	import MetricTile from './MetricTile.svelte';
+	import WsStatus from './WsStatus.svelte';
 
 	interface Props {
 		videoPath: string | null;
@@ -37,12 +38,15 @@
 
 		<!-- Metrics overlay (bottom-left) -->
 		<div
-			class="absolute bottom-6 left-6 flex gap-6 rounded-2xl backdrop-blur-2xl bg-base-300/60 p-4 border border-base-content/10"
+			class="absolute bottom-6 left-6 flex flex-col gap-3 rounded-2xl backdrop-blur-2xl bg-base-300/60 p-4 border border-base-content/10"
 		>
-			<MetricTile label="Cadence" value={$metrics.cadence} unit="RPM" large />
-			<MetricTile label="Resistance" value={$metrics.resistance} unit="%" large />
-			<MetricTile label="Speed" value={$metrics.speed} unit="KM/H" large />
-			<MetricTile label="Power" value={$metrics.power} unit="W" large />
+			<WsStatus large />
+			<div class="flex gap-6">
+				<MetricTile label="Cadence" value={$metrics.cadence} unit="RPM" large />
+				<MetricTile label="Resistance" value={$metrics.resistance} unit="%" large />
+				<MetricTile label="Speed" value={$metrics.speed} unit="KM/H" large />
+				<MetricTile label="Power" value={$metrics.power} unit="W" large />
+			</div>
 		</div>
 
 		<!-- Close button -->

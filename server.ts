@@ -18,11 +18,11 @@ wss.on('connection', (ws) => {
 	ws.on('message', (raw) => {
 		try {
 			const data = JSON.parse(raw.toString()) as Partial<typeof currentMetrics>;
-			if ('cadence' in data && typeof data.cadence === 'number') {
-				currentMetrics.cadence = data.cadence;
+			if ('cadence' in data && typeof data.cadence === 'number' && Number.isFinite(data.cadence)) {
+				currentMetrics.cadence = Math.min(200, Math.max(0, data.cadence));
 			}
-			if ('resistance' in data && typeof data.resistance === 'number') {
-				currentMetrics.resistance = data.resistance;
+			if ('resistance' in data && typeof data.resistance === 'number' && Number.isFinite(data.resistance)) {
+				currentMetrics.resistance = Math.min(100, Math.max(0, data.resistance));
 			}
 			const msg = JSON.stringify(currentMetrics);
 			for (const client of clients) {
