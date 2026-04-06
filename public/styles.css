@@ -569,7 +569,7 @@ main {
    ========================================================================== */
 .metrics-overlay {
   position: absolute;
-  top: 0;
+  bottom: 30px;
   left: 0;
   width: 100%;
   display: flex;
@@ -795,11 +795,6 @@ footer {
   #content-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: var(--space-lg);
-  }
-
-  .metrics-overlay {
-    gap: var(--space-xl);
-    padding: var(--space-lg);
   }
 
   .metric-value {
