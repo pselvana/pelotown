@@ -7,13 +7,16 @@
 	let { onclose }: Props = $props();
 
 	let bikeModel = $state($profile.bikeModel);
-	let ftp = $state($profile.ftp);
+	let ftp = $state<number | null>($profile.ftp);
+	let ftpInput = $state($profile.ftp !== null ? String($profile.ftp) : '');
 	let speedUnit = $state($profile.speedUnit);
 
 	function save() {
+		const parsed = parseInt(ftpInput);
+		ftp = Number.isFinite(parsed) && parsed >= 50 ? Math.min(500, parsed) : null;
 		profile.set({
 			bikeModel: bikeModel as BikeModel,
-			ftp: Math.max(50, Math.min(500, Number(ftp) || 200)),
+			ftp,
 			speedUnit: speedUnit as SpeedUnit
 		});
 		onclose();
@@ -90,12 +93,20 @@
 						id="ftp-input"
 						type="number"
 						class="input input-bordered flex-1"
-						bind:value={ftp}
+						bind:value={ftpInput}
 						min="50"
 						max="500"
-						placeholder="200"
+						placeholder="Not set"
 					/>
 					<span class="text-sm font-medium text-base-content/60">W</span>
+					{#if ftpInput}
+						<button
+							type="button"
+							class="btn btn-ghost btn-sm btn-circle text-base-content/40 hover:text-base-content"
+							onclick={() => (ftpInput = '')}
+							aria-label="Clear FTP"
+						>✕</button>
+					{/if}
 				</div>
 				<p class="text-xs text-base-content/40">
 					Max sustainable power for ~60 min. Used to show training zones.

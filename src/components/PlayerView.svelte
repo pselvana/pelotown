@@ -6,6 +6,7 @@
 	import WsStatus from './WsStatus.svelte';
 	import PowerGraph from './PowerGraph.svelte';
 	import PowerZoneBar from './PowerZoneBar.svelte';
+	import { profile } from '$lib/stores/profile.js';
 	import WorkoutSummary from './WorkoutSummary.svelte';
 	import type { WorkoutSummary as WorkoutSummaryType } from '$lib/types.js';
 
@@ -23,14 +24,18 @@
 	let _trackedPath: string | null = null;
 
 	$effect(() => {
-		if (videoPath && videoEl) {
-			if (videoPath !== _trackedPath) {
-				_trackedPath = videoPath;
+		// Reset session state whenever videoPath changes (doesn't need videoEl)
+		if (videoPath !== _trackedPath) {
+			_trackedPath = videoPath;
+			if (videoPath) {
 				summaryData = null;
 				const parsed = parseFileName(videoPath.split('/').pop() ?? '');
 				videoTitle = [parsed.title, parsed.instructor].filter(Boolean).join(' · ') || videoPath;
 				startSession();
 			}
+		}
+		// Start playback once video element is mounted (after summaryData = null re-renders)
+		if (videoPath && videoEl) {
 			videoEl.src = `/videos/${videoPath}`;
 			videoEl.play().catch(() => {});
 		}
@@ -82,9 +87,11 @@
 			<!-- Bottom overlay: graph + zones + metrics -->
 			<div class="absolute bottom-0 left-0 right-0 backdrop-blur-2xl bg-base-300/75 border-t border-base-content/10 px-6 pt-3 pb-4">
 				<!-- Zone bar row -->
-				<div class="mb-2">
-					<PowerZoneBar />
-				</div>
+				{#if $profile.ftp !== null}
+					<div class="mb-2">
+						<PowerZoneBar />
+					</div>
+				{/if}
 
 				<!-- Power graph -->
 				<PowerGraph samples={$sessionSamples} />

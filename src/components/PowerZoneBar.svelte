@@ -10,7 +10,7 @@
 		{ id: 5, name: 'VO₂ Max',  min: 1.05, max: Infinity, color: '#E63946' }
 	] as const;
 
-	let pctFtp = $derived($profile.ftp > 0 ? $metrics.power / $profile.ftp : 0);
+	let pctFtp = $derived($profile.ftp !== null && $profile.ftp > 0 ? $metrics.power / $profile.ftp : 0);
 	let currentZone = $derived(
 		ZONES.find((z) => pctFtp >= z.min && pctFtp < z.max) ?? ZONES[0]
 	);
