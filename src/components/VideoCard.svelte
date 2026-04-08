@@ -47,7 +47,7 @@
 				<span class="badge badge-ghost badge-sm text-xs">{video.exercise}</span>
 			{/if}
 			{#if video.type}
-				<span class="badge badge-primary badge-outline badge-sm text-xs">{video.type}</span>
+				<span class="badge badge-primary badge-sm text-xs">{video.type}</span>
 			{/if}
 		</div>
 		<!-- Play hint -->

@@ -37,10 +37,23 @@ export function stopSession(): WorkoutSummary | null {
 	sessionActive.set(false);
 
 	const samples = get(sessionSamples);
-	if (samples.length < 5) return null; // not enough data for a meaningful summary
-
 	const endedAt = Date.now();
 	const durationSecs = Math.round((endedAt - sessionStart) / 1000);
+
+	if (samples.length === 0) {
+		return {
+			startedAt: sessionStart,
+			endedAt,
+			durationSecs,
+			samples: [],
+			avgCadence: 0, maxCadence: 0,
+			avgResistance: 0, maxResistance: 0,
+			avgPower: 0, maxPower: 0,
+			avgSpeed: 0,
+			totalOutput: 0,
+			calories: 0
+		};
+	}
 
 	const cadences = samples.map((s) => s.cadence);
 	const resistances = samples.map((s) => s.resistance);

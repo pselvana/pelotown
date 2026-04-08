@@ -7,9 +7,10 @@
 		summary: WorkoutSummary;
 		videoPath: string;
 		videoTitle: string;
+		isCycling: boolean;
 		onDone: () => void;
 	}
-	let { summary, videoPath, videoTitle, onDone }: Props = $props();
+	let { summary, videoPath, videoTitle, isCycling, onDone }: Props = $props();
 
 	function fmtDuration(secs: number): string {
 		const h = Math.floor(secs / 3600);
@@ -49,11 +50,13 @@
 		</div>
 	</div>
 
-	<!-- Hero stat: Total Output -->
-	<div class="mb-8 text-center">
-		<div class="text-7xl font-bold tabular-nums text-primary">{summary.totalOutput}</div>
-		<div class="text-sm font-semibold uppercase tracking-widest text-base-content/50 mt-1">kJ Total Output</div>
-	</div>
+	{#if isCycling}
+		<!-- Hero stat: Total Output -->
+		<div class="mb-8 text-center">
+			<div class="text-7xl font-bold tabular-nums text-primary">{summary.totalOutput}</div>
+			<div class="text-sm font-semibold uppercase tracking-widest text-base-content/50 mt-1">kJ Total Output</div>
+		</div>
+	{/if}
 
 	<!-- Stats grid -->
 	<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 w-full max-w-2xl">
@@ -63,51 +66,53 @@
 			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Duration</div>
 		</div>
 
-		<!-- Calories -->
-		<div class="rounded-2xl bg-base-200 p-4 text-center">
-			<div class="text-3xl font-bold tabular-nums text-secondary">{summary.calories}</div>
-			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Calories</div>
-		</div>
+		{#if isCycling}
+			<!-- Calories -->
+			<div class="rounded-2xl bg-base-200 p-4 text-center">
+				<div class="text-3xl font-bold tabular-nums text-secondary">{summary.calories}</div>
+				<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Calories</div>
+			</div>
 
-		<!-- Avg Power -->
-		<div class="rounded-2xl bg-base-200 p-4 text-center">
-			<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgPower}</div>
-			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg Watts</div>
-		</div>
+			<!-- Avg Power -->
+			<div class="rounded-2xl bg-base-200 p-4 text-center">
+				<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgPower}</div>
+				<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg Watts</div>
+			</div>
 
-		<!-- Max Power -->
-		<div class="rounded-2xl bg-base-200 p-4 text-center">
-			<div class="text-3xl font-bold tabular-nums text-base-content">{summary.maxPower}</div>
-			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Max Watts</div>
-		</div>
+			<!-- Max Power -->
+			<div class="rounded-2xl bg-base-200 p-4 text-center">
+				<div class="text-3xl font-bold tabular-nums text-base-content">{summary.maxPower}</div>
+				<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Max Watts</div>
+			</div>
 
-		<!-- Avg Cadence -->
-		<div class="rounded-2xl bg-base-200 p-4 text-center">
-			<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgCadence}</div>
-			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg Cadence</div>
-		</div>
+			<!-- Avg Cadence -->
+			<div class="rounded-2xl bg-base-200 p-4 text-center">
+				<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgCadence}</div>
+				<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg Cadence</div>
+			</div>
 
-		<!-- Max Cadence -->
-		<div class="rounded-2xl bg-base-200 p-4 text-center">
-			<div class="text-3xl font-bold tabular-nums text-base-content">{summary.maxCadence}</div>
-			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Max Cadence</div>
-		</div>
+			<!-- Max Cadence -->
+			<div class="rounded-2xl bg-base-200 p-4 text-center">
+				<div class="text-3xl font-bold tabular-nums text-base-content">{summary.maxCadence}</div>
+				<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Max Cadence</div>
+			</div>
 
-		<!-- Avg Resistance -->
-		<div class="rounded-2xl bg-base-200 p-4 text-center">
-			<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgResistance}</div>
-			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg Resist %</div>
-		</div>
+			<!-- Avg Resistance -->
+			<div class="rounded-2xl bg-base-200 p-4 text-center">
+				<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgResistance}</div>
+				<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg Resist %</div>
+			</div>
 
-		<!-- Avg Speed -->
-		<div class="rounded-2xl bg-base-200 p-4 text-center">
-			<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgSpeed}</div>
-			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg km/h</div>
-		</div>
+			<!-- Avg Speed -->
+			<div class="rounded-2xl bg-base-200 p-4 text-center">
+				<div class="text-3xl font-bold tabular-nums text-base-content">{summary.avgSpeed}</div>
+				<div class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mt-1">Avg km/h</div>
+			</div>
+		{/if}
 	</div>
 
-	<!-- Power graph -->
-	{#if summary.samples.length >= 2}
+	<!-- Power graph (cycling only) -->
+	{#if isCycling && summary.samples.length >= 2}
 		<div class="w-full max-w-2xl mb-8">
 			<div class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-2">Power Output</div>
 			<div class="rounded-2xl bg-base-200 p-4 overflow-hidden">

@@ -19,6 +19,7 @@
 	let videoEl = $state<HTMLVideoElement | null>(null);
 	let summaryData = $state<WorkoutSummaryType | null>(null);
 	let videoTitle = $state('');
+	let isCycling = $state(false);
 
 	// Track which path the session was started for to avoid double-starts
 	let _trackedPath: string | null = null;
@@ -31,6 +32,7 @@
 				summaryData = null;
 				const parsed = parseFileName(videoPath.split('/').pop() ?? '');
 				videoTitle = [parsed.title, parsed.instructor].filter(Boolean).join(' · ') || videoPath;
+				isCycling = parsed.exercise.toLowerCase() === 'cycling';
 				startSession();
 			}
 		}
@@ -73,6 +75,7 @@
 				summary={summaryData}
 				{videoPath}
 				{videoTitle}
+				{isCycling}
 				onDone={onClose}
 			/>
 		{:else}
@@ -84,27 +87,29 @@
 				onended={handleClose}
 			></video>
 
-			<!-- Bottom overlay: graph + zones + metrics -->
-			<div class="absolute bottom-0 left-0 right-0 backdrop-blur-2xl bg-base-300/75 border-t border-base-content/10 px-6 pt-3 pb-4">
-				<!-- Zone bar row -->
-				{#if $profile.ftp !== null}
-					<div class="mb-2">
-						<PowerZoneBar />
+			<!-- Bottom overlay: graph + zones + metrics (cycling only) -->
+			{#if isCycling}
+				<div class="absolute bottom-0 left-0 right-0 backdrop-blur-2xl bg-base-300/75 border-t border-base-content/10 px-6 pt-3 pb-4">
+					<!-- Zone bar row -->
+					{#if $profile.ftp !== null}
+						<div class="mb-2">
+							<PowerZoneBar />
+						</div>
+					{/if}
+
+					<!-- Power graph -->
+					<PowerGraph samples={$sessionSamples} />
+
+					<!-- Metrics row -->
+					<div class="flex items-center gap-6 mt-3">
+						<WsStatus large />
+						<MetricTile label="Cadence" value={$metrics.cadence} unit="RPM" large />
+						<MetricTile label="Resistance" value={$metrics.resistance} unit="%" large />
+						<MetricTile label="Speed" value={$metrics.speed} unit="KM/H" large />
+						<MetricTile label="Power" value={$metrics.power} unit="W" large />
 					</div>
-				{/if}
-
-				<!-- Power graph -->
-				<PowerGraph samples={$sessionSamples} />
-
-				<!-- Metrics row -->
-				<div class="flex items-center gap-6 mt-3">
-					<WsStatus large />
-					<MetricTile label="Cadence" value={$metrics.cadence} unit="RPM" large />
-					<MetricTile label="Resistance" value={$metrics.resistance} unit="%" large />
-					<MetricTile label="Speed" value={$metrics.speed} unit="KM/H" large />
-					<MetricTile label="Power" value={$metrics.power} unit="W" large />
 				</div>
-			</div>
+			{/if}
 
 			<!-- Close button -->
 			<button
