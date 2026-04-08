@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { WorkoutSummary } from '$lib/types.js';
+	import type { WorkoutSummary, AchievementDef } from '$lib/types.js';
 	import PowerGraph from './PowerGraph.svelte';
+	import TrophyUnlock from './TrophyUnlock.svelte';
 
 	interface Props {
 		summary: WorkoutSummary;
@@ -11,6 +12,13 @@
 		onDone: () => void;
 	}
 	let { summary, videoPath, videoTitle, isCycling, onDone }: Props = $props();
+
+	let pendingUnlocks = $state<AchievementDef[]>([]);
+	let currentUnlock = $derived(pendingUnlocks[0] ?? null);
+
+	function dismissUnlock() {
+		pendingUnlocks = pendingUnlocks.slice(1);
+	}
 
 	function fmtDuration(secs: number): string {
 		const h = Math.floor(secs / 3600);
@@ -24,13 +32,20 @@
 		return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 	}
 
-	onMount(() => {
-		// Fire-and-forget save to DB
-		fetch('/api/workout/save', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ videoPath, summary })
-		}).catch(() => {});
+	onMount(async () => {
+		try {
+			const res = await fetch('/api/workout/save', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ videoPath, summary }),
+			});
+			const data = await res.json();
+			if (data.newUnlocks?.length) {
+				pendingUnlocks = data.newUnlocks;
+			}
+		} catch {
+			// non-critical
+		}
 	});
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -126,3 +141,7 @@
 		Done
 	</button>
 </div>
+
+{#if currentUnlock}
+	<TrophyUnlock achievement={currentUnlock} onDismiss={dismissUnlock} />
+{/if}

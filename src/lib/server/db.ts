@@ -77,5 +77,26 @@ export function initDb(): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_workout_sessions_started ON workout_sessions(started_at DESC);
+
+    CREATE TABLE IF NOT EXISTS streak_state (
+      id              INTEGER PRIMARY KEY CHECK (id = 1),
+      current_count   INTEGER NOT NULL DEFAULT 0,
+      longest_count   INTEGER NOT NULL DEFAULT 0,
+      last_workout_date TEXT NOT NULL DEFAULT '',
+      streak_start_date TEXT NOT NULL DEFAULT '',
+      grace_used      INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS achievement_unlocks (
+      achievement_id TEXT PRIMARY KEY,
+      unlocked_at    INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS pr_records (
+      metric     TEXT PRIMARY KEY,
+      best_value REAL    NOT NULL,
+      session_id INTEGER NOT NULL,
+      set_at     INTEGER NOT NULL
+    );
   `);
 }

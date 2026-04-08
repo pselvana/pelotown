@@ -54,6 +54,43 @@ export interface WorkoutSummary {
 	calories: number;
 }
 
+export type AchievementType = 'milestone' | 'streak';
+export type Tier = 'bronze' | 'silver' | 'gold' | 'platinum';
+
+export interface AchievementDef {
+	id: string;
+	type: AchievementType;
+	name: string;
+	description: string;
+	threshold: number;
+	tier: Tier;
+	icon: string;
+}
+
+export interface AchievementState extends AchievementDef {
+	unlockedAt: number | null; // unix ms, null if locked
+	progress: number;
+}
+
+export interface StreakState {
+	currentCount: number;
+	longestCount: number;
+	lastWorkoutDate: string; // YYYY-MM-DD
+	streakStartDate: string; // YYYY-MM-DD
+}
+
+export interface CalendarDay {
+	date: string;           // YYYY-MM-DD
+	hasWorkout: boolean;
+	achievementIds: string[];
+}
+
+export interface PRRecord {
+	metric: string;
+	bestValue: number;
+	setAt: number; // unix ms
+}
+
 export interface WorkoutSession {
 	id: number;
 	video_path: string;

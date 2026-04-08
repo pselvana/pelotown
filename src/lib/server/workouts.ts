@@ -1,6 +1,6 @@
 import { getDb } from './db.js';
 import { parseFileName } from '../utils.js';
-import type { WorkoutSummary, WorkoutSession } from '../types.js';
+import type { WorkoutSummary, WorkoutSession, PRRecord } from '../types.js';
 import path from 'path';
 
 export function saveWorkoutSession(videoPath: string, summary: WorkoutSummary): number {
@@ -39,6 +39,60 @@ export function saveWorkoutSession(videoPath: string, summary: WorkoutSummary): 
 		});
 
 	return result.lastInsertRowid as number;
+}
+
+/**
+ * Update personal records after a workout. Returns which metrics had new PRs set.
+ * Tracks: max_power (W), total_output (kJ), duration_secs (s).
+ */
+export function updatePRs(
+	sessionId: number,
+	summary: Pick<WorkoutSummary, 'maxPower' | 'totalOutput' | 'durationSecs'>
+): string[] {
+	const db = getDb();
+	const now = Math.floor(Date.now() / 1000);
+
+	const candidates: { metric: string; value: number }[] = [
+		{ metric: 'max_power',     value: summary.maxPower },
+		{ metric: 'total_output',  value: summary.totalOutput },
+		{ metric: 'duration_secs', value: summary.durationSecs },
+	];
+
+	const beaten: string[] = [];
+
+	for (const { metric, value } of candidates) {
+		if (value <= 0) continue;
+		const existing = db
+			.prepare(`SELECT best_value FROM pr_records WHERE metric = ?`)
+			.get(metric) as { best_value: number } | undefined;
+
+		if (!existing) {
+			db.prepare(
+				`INSERT INTO pr_records (metric, best_value, session_id, set_at) VALUES (?, ?, ?, ?)`
+			).run(metric, value, sessionId, now);
+			beaten.push(metric);
+		} else if (value > existing.best_value) {
+			db.prepare(
+				`UPDATE pr_records SET best_value = ?, session_id = ?, set_at = ? WHERE metric = ?`
+			).run(value, sessionId, now, metric);
+			beaten.push(metric);
+		}
+	}
+
+	return beaten;
+}
+
+export function getPRRecords(): PRRecord[] {
+	const db = getDb();
+	const rows = db
+		.prepare(`SELECT metric, best_value, set_at FROM pr_records`)
+		.all() as { metric: string; best_value: number; set_at: number }[];
+
+	return rows.map(r => ({
+		metric: r.metric,
+		bestValue: r.best_value,
+		setAt: r.set_at * 1000,
+	}));
 }
 
 export function getWorkoutHistory(limit = 50): WorkoutSession[] {

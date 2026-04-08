@@ -5,6 +5,7 @@
 	import { connectMetrics } from '$lib/stores/metrics.js';
 	import { browser } from '$app/environment';
 	import ProfileSettings from '../components/ProfileSettings.svelte';
+	import TrophyCase from '../components/TrophyCase.svelte';
 
 	interface Props {
 		children: import('svelte').Snippet;
@@ -13,8 +14,10 @@
 
 	let view = $derived($page.url.searchParams.get('view') ?? 'all');
 	let profileOpen = $state(false);
+	let trophyOpen = $state(false);
+	let currentStreak = $state(0);
 
-	onMount(() => {
+	onMount(async () => {
 		if (!browser) return;
 		const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 		const wsUrl =
@@ -23,6 +26,15 @@
 				? 'ws://localhost:3001'
 				: `${wsProtocol}//${window.location.host}`);
 		connectMetrics(wsUrl);
+
+		// Load streak count for header display
+		try {
+			const res = await fetch('/api/streaks');
+			const data = await res.json();
+			currentStreak = data.streak?.currentCount ?? 0;
+		} catch {
+			// non-critical
+		}
 	});
 </script>
 
@@ -58,6 +70,35 @@
 				>
 					History
 				</a>
+				<!-- Streak indicator -->
+				{#if currentStreak > 0}
+					<button
+						class="btn btn-sm btn-ghost rounded-full ml-1 gap-1.5 font-bold tabular-nums"
+						onclick={() => (trophyOpen = true)}
+						title="View Trophy Case"
+					>
+						<span class="text-base leading-none">🔥</span>{currentStreak}
+					</button>
+				{/if}
+
+				<!-- Trophy Case -->
+				<button
+					class="btn btn-sm btn-ghost btn-circle ml-1"
+					onclick={() => (trophyOpen = true)}
+					title="Trophy Case"
+					aria-label="Trophy Case"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+						<path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+						<path d="M4 22h16"/>
+						<path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+						<path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+						<path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+					</svg>
+				</button>
+
+				<!-- Profile Settings -->
 				<button
 					class="btn btn-sm btn-ghost btn-circle ml-1"
 					onclick={() => (profileOpen = true)}
@@ -86,4 +127,8 @@
 
 {#if profileOpen}
 	<ProfileSettings onclose={() => (profileOpen = false)} />
+{/if}
+
+{#if trophyOpen}
+	<TrophyCase onclose={() => (trophyOpen = false)} />
 {/if}
